@@ -6,10 +6,15 @@
 # start program
 puts "initializing"
 
+# constants
+WIDTH = 2
 
 # initialize board state array
 $board = [ [ " " , " " , " " ] , [ " " , " " , " " ] , [ " " , " " , " " ] ]
 
+#############################################################################
+#############################   METHODS   ###################################
+#############################################################################
 
 # main program method
 def main()
@@ -21,9 +26,15 @@ def main()
 	# get input until exit command is received
 	begin
 		
-		# check if input is valid
-		# and update board state
-		setState(input)
+		# interpret text commands
+		case input
+		when "print"
+			print_state
+		else
+			# check if input is valid
+			# and update board state
+			setState(input)
+		end
 		
 		# keep checking for input
 		input = gets.chomp
@@ -33,20 +44,20 @@ def main()
 end
 
 # output board state to console
-def print_state()
+def print_state
 	
 	# iterate over array
 	print "\n"
-	(0..2).each do |y|
-		(0..2).each do |x|
+	(0..WIDTH).each do |y|
+		(0..WIDTH).each do |x|
 			print $board[x][y]
 			
 			# vertical lines
-			print x < 2 ? "|" : nil
+			print x < WIDTH ? "|" : nil
 		end
 		
 		# horizontal lines
-		print y < 2 ? "\n-----\n" : "\n"
+		print y < WIDTH ? "\n-----\n" : "\n"
 	end
 	print "\n"
 	
@@ -82,22 +93,22 @@ def verify_input?(input)
 		puts "x and y must be numbers"
 		return false
 	
-	elseif !(state.is_a? String)
+	elsif !(state.is_a? String)
 		puts "state must be a string"
 		return false
 	
 	end
 	
 	# check data ranges
-	if (x < 0 || x > 2)
+	if (x < 0 || x > WIDTH)
 		puts "x value out of range"
 		return false
 	
-	elseif (y < 0 || y > 2)
+	elsif (y < 0 || y > WIDTH)
 		puts "y value out of range"
 		return false
 	
-	elseif !(state == "X" || state == "O")
+	elsif !(state == "X" || state == "O")
 		puts "state must be either X or O"
 		return false
 	
@@ -137,7 +148,9 @@ end
 def setState(input)
 	
 	# format input
-	if !(fInput = format_input(input))
+	fInput = format_input(input)
+	if (fInput == false)
+		# input wasn't formatted correctly
 		return false
 	end
 	
@@ -145,8 +158,25 @@ def setState(input)
 	$board[fInput[0]][fInput[1]] = fInput[2]
 	
 	# print board for debugging
-	print_state()
+	print_state
 	
 end
 
-main()
+# determine best move
+# param: whose turn it is
+def evaluate(active)
+	# CRITERIA FOR MOVE M:
+	# does M win? (duh)
+	# (delta?) possible future wins given M
+	# (delta?) shortest possible turns to win given M
+	# delta possible future opp wins given M
+	# delta shortest possible turns to win given M
+	
+	# ALGORITHM
+	# get list of all possible moves
+	# evaluate and rate each
+	# find best value (maybe put them all in a heap)
+end
+
+# initialize main method
+main
