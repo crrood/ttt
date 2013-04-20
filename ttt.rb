@@ -33,7 +33,7 @@ class Move
 	end
 	
 	def player
-		@player
+		@player.capitalize
 	end
 end
 
@@ -54,10 +54,15 @@ def main
 		
 		# interpret text commands
 		case input
+		
+		# output current board state
 		when "print"
+		
 			print_state
-			
+		
+		# input is the next move
 		else
+		
 			# check if input is valid
 			# and update board state
 			if (formatted_input = format_input(input))
@@ -69,7 +74,7 @@ def main
 		# keep checking for input
 		input = gets.chomp
 		
-	end until input == "exit"
+	end until input == "q"
 	
 end
 
@@ -79,16 +84,21 @@ def print_state
 	# iterate over array
 	print "\n"
 	(0..WIDTH).each do |y|
+	
 		(0..WIDTH).each do |x|
+		
 			print $board[x][y]
 			
 			# vertical lines
 			print x < WIDTH ? "|" : nil
+			
 		end
 		
 		# horizontal lines
 		print y < WIDTH ? "\n-----\n" : "\n"
+		
 	end
+	
 	print "\n"
 	
 end
@@ -96,6 +106,9 @@ end
 
 # make sure input is properly formatted
 # param: input string
+
+# NOTE
+# this could probably go in the Move.initialize method
 def verify_input?(input)
 	
 	# input comes formatted as a string of the form "x y state"
@@ -163,7 +176,7 @@ def format_input(input)
 	# input comes formatted as a string
 	# of the form "x y state"
 	f_input = input.split(" ")
-	move_object = Move.new(f_input[0], f_input[1], f_input[2].capitalize)
+	move_object = Move.new(f_input[0], f_input[1], f_input[2])
 	
 	return move_object
 end
@@ -184,28 +197,63 @@ end
 # determine best move
 # param: whose turn it is
 def find_optimal_move_for(active)
-	# CRITERIA FOR MOVE M:
-	# does M win? (duh)
-	# (delta?) possible future wins given M
-	# (delta?) shortest possible turns to win given M
-	# delta possible future opp wins given M
-	# delta shortest possible turns to win given M
+	
+	# iterate over all spaces
+	# evaluate each
+	# and place them in a heap (priority queue)
+	
+	# NOTE
+	# since we're only interested in the highest value
+	# a simple value check would probably work
+	pq = Containers::PriorityQueue.new
+	
+	# iterate over all possible moves
 	(0..WIDTH).each do |y|
+	
 		(0..WIDTH).each do |x|
-			print $board[x][y]
+			
+			# check if the move is valid
+			if ($board[x][y] == " ")
+				# evaluate move
+				move_object = Move.new (x, y, active)
+				move_value = evaluate (move_object)
+				
+				# place in heap
+				pq.push(move_object, move_value)
+				
+			end
+			
 		end
+		
 	end
 	
-	# ALGORITHM
-	# get list of all possible moves
-	# evaluate and rate each
-	# find best value (maybe put them all in a heap)
+	# return the highest rated move
+	return pq.pop
+	
 end
 
 # quantify the value of a specific move
 # param: qualified Move object
-def evaluate(input)
+def evaluate(move)
 	
+	# initialize move value counter
+	move_value = 0
+	
+	# CRITERIA FOR MOVE M:
+	# does M win? (duh)
+	move_value += wins?(move)
+	
+	# (delta?) possible future wins given M
+	# (delta?) shortest possible turns to win given M
+	# delta possible future opp wins given M
+	# delta shortest possible turns to win given M
+	
+end
+
+# would this move win the game?
+# param: a qualified Move object
+def wins?(move)
+	# there must be a way to do this recursively...
 end
 
 #############################################################################
