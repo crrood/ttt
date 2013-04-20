@@ -3,8 +3,9 @@
 # by colin rood
 
 
-# start program
-puts "initializing"
+#############################################################################
+############################   VARIABLES   ##################################
+#############################################################################
 
 # constants
 WIDTH = 2
@@ -12,12 +13,37 @@ WIDTH = 2
 # initialize board state array
 $board = [ [ " " , " " , " " ] , [ " " , " " , " " ] , [ " " , " " , " " ] ]
 
+
+#############################################################################
+#############################   CLASSES   ###################################
+#############################################################################
+class Move
+	def initialize(x, y, player)
+		@x = x
+		@y = y
+		@player = player
+	end
+	
+	def x
+		@x.to_i
+	end
+	
+	def y
+		@y.to_i
+	end
+	
+	def player
+		@player
+	end
+end
+
+
 #############################################################################
 #############################   METHODS   ###################################
 #############################################################################
 
 # main program method
-def main()
+def main
 
 	# clear the system input buffer
 	STDOUT.flush
@@ -30,10 +56,14 @@ def main()
 		case input
 		when "print"
 			print_state
+			
 		else
 			# check if input is valid
 			# and update board state
-			setState(input)
+			if (formatted_input = format_input(input))
+				set_state (formatted_input)
+			end
+			
 		end
 		
 		# keep checking for input
@@ -65,6 +95,7 @@ end
 
 
 # make sure input is properly formatted
+# param: input string
 def verify_input?(input)
 	
 	# input comes formatted as a string of the form "x y state"
@@ -74,17 +105,17 @@ def verify_input?(input)
 	end
 	
 	# divide input string into an array
-	fInput = input.split(" ")
+	f_input = input.split(" ")
 	
-	if fInput.length != 3
+	if f_input.length != 3
 		puts "wrong number of arguments"
 		return false
 	
 	else
 		# format string into Array
-		x = fInput[0].to_i
-		y = fInput[1].to_i
-		state = fInput[2].capitalize
+		x = f_input[0].to_i
+		y = f_input[1].to_i
+		state = f_input[2].capitalize
 		
 	end
 	
@@ -120,42 +151,30 @@ def verify_input?(input)
 end
 
 
-# convert the input string to an array
+# convert the input string to a Move object
+# param: input string of format "x y player"
 def format_input(input)
 
-	# make sure input is valid
+	# make sure input string is valid
 	if !verify_input?(input)
 		return false
 	end
 	
 	# input comes formatted as a string
 	# of the form "x y state"
-	fInput = input.split(" ")
-	x = fInput[0].to_i
-	y = fInput[1].to_i
-	state = fInput[2].capitalize
+	f_input = input.split(" ")
+	move_object = Move.new(f_input[0], f_input[1], f_input[2].capitalize)
 	
-	# put it all back into the array
-	fInput[0] = x
-	fInput[1] = y
-	fInput[2] = state
-	
-	return fInput
+	return move_object
 end
 
 
 # update board state
-def setState(input)
-	
-	# format input
-	fInput = format_input(input)
-	if (fInput == false)
-		# input wasn't formatted correctly
-		return false
-	end
+# param: qualified Move object
+def set_state(move)
 	
 	# update board state
-	$board[fInput[0]][fInput[1]] = fInput[2]
+	$board[move.x][move.y] = move.player
 	
 	# print board for debugging
 	print_state
@@ -164,19 +183,37 @@ end
 
 # determine best move
 # param: whose turn it is
-def evaluate(active)
+def find_optimal_move_for(active)
 	# CRITERIA FOR MOVE M:
 	# does M win? (duh)
 	# (delta?) possible future wins given M
 	# (delta?) shortest possible turns to win given M
 	# delta possible future opp wins given M
 	# delta shortest possible turns to win given M
+	(0..WIDTH).each do |y|
+		(0..WIDTH).each do |x|
+			print $board[x][y]
+		end
+	end
 	
 	# ALGORITHM
 	# get list of all possible moves
 	# evaluate and rate each
 	# find best value (maybe put them all in a heap)
 end
+
+# quantify the value of a specific move
+# param: qualified Move object
+def evaluate(input)
+	
+end
+
+#############################################################################
+#############################   RUNTIME   ###################################
+#############################################################################
+
+# start program
+puts "initializing"
 
 # initialize main method
 main
