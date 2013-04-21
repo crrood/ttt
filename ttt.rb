@@ -11,29 +11,27 @@
 WIDTH = 2
 
 # initialize board state array
-$board = [ [ " " , " " , " " ] , [ " " , " " , " " ] , [ " " , " " , " " ] ]
+$board = [ [ "E" , "E" , "E" ] , [ "E" , "E" , "E" ] , [ "E" , "E" , "E" ] ]
+
+# move evaluation paramater weights
+$weight = Hash.new
 
 
 #############################################################################
 #############################   CLASSES   ###################################
 #############################################################################
 class Move
+	
+	attr_accessor :x, :y, :player
+	
 	def initialize(x, y, player)
-		@x = x
-		@y = y
-		@player = player
+		@x = x.to_i
+		@y = y.to_i
+		@player = player.capitalize
 	end
 	
-	def x
-		@x.to_i
-	end
-	
-	def y
-		@y.to_i
-	end
-	
-	def player
-		@player.capitalize
+	def opp
+		@player == "X" ? "O" : "X"
 	end
 end
 
@@ -44,8 +42,26 @@ end
 
 # main program method
 def main
-
-	# clear the system input buffer
+	
+	# load paramater weights from already existing input file
+	param, weight = Array.new
+	File.open("input.csv", "r") do |input|
+		param = input.gets.chomp.split(",")
+		weight = input.gets.chomp.split(",")
+	end
+	
+	# put weights from file into the $weight hash
+	(0..param.length).each do |i|
+		$weight[param[i]] = weight[i]
+	end
+	
+	# DEBUG
+	puts "$weight: " + $weight.to_s
+	
+	# create a new file for output
+	$output = File.open("output.csv", "w")
+	
+	# clear the system input buffer and prepare for input
 	STDOUT.flush
 	input = gets.chomp # chomp removes the trailing \n character
 	
@@ -53,13 +69,20 @@ def main
 	begin
 		
 		# interpret text commands
-		case input
+		split = input.split
+		case split[0]
 		
 		# output current board state
 		when "print"
 		
 			print_state
-		
+			
+		when "evaluate", "eval"
+			
+			if (split.length >= 4 && formatted_input = format_input(split[1] + " " + split[2] + " " + split[3]))
+				evaluate( formatted_input )
+			end
+			
 		# input is the next move
 		else
 		
@@ -86,8 +109,12 @@ def print_state
 	(0..WIDTH).each do |y|
 	
 		(0..WIDTH).each do |x|
-		
-			print $board[x][y]
+			
+			if ($board[x][y] == "E")
+				print " "
+			else
+				print $board[x][y]
+			end
 			
 			# vertical lines
 			print x < WIDTH ? "|" : nil
@@ -213,10 +240,10 @@ def find_optimal_move_for(active)
 		(0..WIDTH).each do |x|
 			
 			# check if the move is valid
-			if ($board[x][y] == " ")
+			if ($board[x][y] == "E")
 				# evaluate move
-				move_object = Move.new (x, y, active)
-				move_value = evaluate (move_object)
+				move_object = Move.new(x, y, active)
+				move_value = evaluate(move_object)
 				
 				# place in heap
 				pq.push(move_object, move_value)
@@ -236,25 +263,123 @@ end
 # param: qualified Move object
 def evaluate(move)
 	
+	# CRITERIA FOR MOVE M:
+	# does M win?
+	# delta possible future wins given M
+	# delta shortest possible turns to win given M
+	# delta possible future opp wins given M
+	# delta shortest possible turns to opp win given M
+	
+	# since there are only 8 possible ways to win in tic-tac-toe,
+	# these can all be reasonably combined into a single brute force algorithm
+	# which counts the number of player, opponent, and empty spaces
+	# in each possible victory vector and determines values for these parameters
+	# this runs once at the current board state
+	# and again assuming (move) to determine deltas
+	
+	# parameter variables to max/min
+	turns_to_win = [3, 3]
+	turns_to_opp_win = [3, 3]
+	possible_wins = [0, 0]
+	possible_opp_wins = [0, 0]
+	
+	# counter hash
+	num_filled_as = Hash.new
+	num_filled_as["X"] = 0
+	num_filled_as["O"] = 0
+	num_filled_as["E"] = 0
+	
+	# runs algorithm twice
+	# first at current board state
+	# then taking move as true
+	(0..1).each do |m|
+	
+		# iterates through board twice
+		# reflecting from horizontal to vertical at y = 3
+		# by reversing x and y coordinates
+		(0..5).each do |y|
+			(0..2).each do |x|
+				# count spaces
+				if (y < 3)
+					# horizontal
+					num_filled_as[$board[x][y]] += 1
+				else
+					# vertical
+					num_filled_as[$board[y - 3][x]] += 1
+				end
+			end
+			
+			# evaluate parameters
+			if (num_filled_as[move.player] == 0)
+				possible_opp_wins[m]
+				turns_to_opp_win[m] = [turns_to_opp_win[m], num_filled_as["E"]].min
+				
+			elsif (num_filled_as[move.opp] == 0)
+				possible_wins[m] += 1
+				turns_to_win[m] = [turns_to_win[m], num_filled_as["E"]].min
+			
+			end
+			
+			# reset hash
+			num_filled_as.each_key{ |key| num_filled_as[key] = 0 }
+			
+		end
+		
+		# diagonals
+		(0..1).each do |i|
+			(0..2).each do |j|
+				# a little bit of mathmatical wizardry
+				# when i == 0 goes TL --> BR
+				num_filled_as[$board[j][(2 * i - j).abs]] += 1
+				
+			end
+		
+			# evaluate parameters
+			if (num_filled_as[move.player] == 0)
+				possible_opp_wins[m] += 1
+				turns_to_opp_win[m] = [turns_to_opp_win[m], num_filled_as["E"]].min
+				
+			elsif (num_filled_as[move.opp] == 0)
+				possible_wins[m] += 1
+				turns_to_win[m] = [turns_to_win[m], num_filled_as["E"]].min
+			
+			end
+			
+			# reset hash
+			num_filled_as.each_key{ |key| num_filled_as[key] = 0 }
+			
+		end
+		
+		# set move as given and repeat
+		$board[move.x][move.y] = move.player
+	
+	end
+	
+	# return $board to original state
+	$board[move.x][move.y] = "E"
+	
+	# gather paramter values into Hash
+	# not strictly necessary but nice for debugging
+	params = Hash.new
+	params["move_wins"] = turns_to_win[1] == 0 ? 1 : 0
+	params["d_possible_wins"] = possible_wins[1] - possible_wins[0]
+	params["d_turns_to_win"] = turns_to_win[1] - turns_to_win[0]
+	params["d_possible_opp_wins"] = possible_opp_wins[1] - possible_opp_wins[0]
+	params["d_turns_to_opp_win"] = turns_to_opp_win[1] - turns_to_opp_win[0]
+	
 	# initialize move value counter
 	move_value = 0
 	
-	# CRITERIA FOR MOVE M:
-	# does M win? (duh)
-	move_value += wins?(move)
+	# multiply parameter values by their weights
+	params.each_key do |p|
+		move_value += params[p].to_i * $weight[p].to_i
+	end
 	
-	# (delta?) possible future wins given M
-	# (delta?) shortest possible turns to win given M
-	# delta possible future opp wins given M
-	# delta shortest possible turns to win given M
+	# DEBUG
+	puts "move_value: " + move_value.to_s
 	
 end
 
-# would this move win the game?
-# param: a qualified Move object
-def wins?(move)
-	# there must be a way to do this recursively...
-end
 
 #############################################################################
 #############################   RUNTIME   ###################################
