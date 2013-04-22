@@ -33,6 +33,11 @@ class Move
 	def opp
 		@player == "X" ? "O" : "X"
 	end
+	
+	def to_s
+		"(" + @x.to_s + ", " + @y.to_s + ", " + @player.to_s + ")"
+	end
+	
 end
 
 
@@ -52,14 +57,18 @@ def main
 	
 	# put weights from file into the $weight hash
 	(0..param.length).each do |i|
-		$weight[param[i]] = weight[i]
+		$weight[param[i]] = weight[i] if param[i] != nil
 	end
 	
-	# DEBUG
-	puts "$weight: " + $weight.to_s
+	# output weights
+	puts "parameter weights:\n"
+	$weight.each_key do |w|
+		puts w + ": " + $weight[w]
+	end
 	
 	# create a new file for output
 	$output = File.open("output.csv", "w")
+	
 	
 	# clear the system input buffer and prepare for input
 	STDOUT.flush
@@ -76,11 +85,20 @@ def main
 		when "print"
 		
 			print_state
-			
+		
+		# run evaluate method
 		when "evaluate", "eval"
 			
 			if (split.length >= 4 && formatted_input = format_input(split[1] + " " + split[2] + " " + split[3]))
+			
+				# evaluate a specified move
 				evaluate( formatted_input )
+				
+			elsif (split.length == 2)
+			
+				# evaluate all moves for specified player
+				find_optimal_move_for(split[1].capitalize)
+				
 			end
 			
 		# input is the next move
@@ -227,12 +245,11 @@ def find_optimal_move_for(active)
 	
 	# iterate over all spaces
 	# evaluate each
-	# and place them in a heap (priority queue)
+	# and find maximum
 	
-	# NOTE
-	# since we're only interested in the highest value
-	# a simple value check would probably work
-	pq = Containers::PriorityQueue.new
+	# counter variables
+	best_move = nil
+	max_value = 0
 	
 	# iterate over all possible moves
 	(0..WIDTH).each do |y|
@@ -245,8 +262,11 @@ def find_optimal_move_for(active)
 				move_object = Move.new(x, y, active)
 				move_value = evaluate(move_object)
 				
-				# place in heap
-				pq.push(move_object, move_value)
+				# compare against current max
+				if (move_value > max_value)
+					max_value = move_value
+					best_move = move_object.dup
+				end
 				
 			end
 			
@@ -255,7 +275,8 @@ def find_optimal_move_for(active)
 	end
 	
 	# return the highest rated move
-	return pq.pop
+	puts best_move
+	best_move
 	
 end
 
@@ -376,7 +397,9 @@ def evaluate(move)
 	end
 	
 	# DEBUG
-	puts "move_value: " + move_value.to_s
+	puts "move_value for " + move.to_s + ": " + move_value.to_s
+	
+	move_value
 	
 end
 
@@ -384,9 +407,6 @@ end
 #############################################################################
 #############################   RUNTIME   ###################################
 #############################################################################
-
-# start program
-puts "initializing"
 
 # initialize main method
 main
