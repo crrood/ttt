@@ -3,6 +3,8 @@
 # by colin rood
 
 
+require "./ttt_io.rb"
+
 #############################################################################
 ############################   VARIABLES   ##################################
 #############################################################################
@@ -13,7 +15,7 @@ WIDTH = 2
 # initialize board state array
 $board = [ [ "E" , "E" , "E" ] , [ "E" , "E" , "E" ] , [ "E" , "E" , "E" ] ]
 
-# move evaluation paramater weights
+# weights of move evaluation paramaters
 $weight = Hash.new
 
 
@@ -48,19 +50,57 @@ end
 # main program method
 def main
 	
-	# load paramater weights from already existing input file
+	# initialize i/o class
+	reader = Ttt_Reader.new
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	# 1. load the parameters from the file
+	# 2. get an individual object from the reader
+	# 3. load the weights from the individual object
+	# 4. repeat for the other player 2-3
+	# 5. have thenm play each other
+	# 6. save child to output.csv
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	# load input parameter weights from existing input file
 	param, weight = Array.new
 	File.open("input.csv", "r") do |input|
 		param = input.gets.chomp.split(",")
 		weight = input.gets.chomp.split(",")
 	end
 	
-	# put weights from file into the $weight hash
+	# put input weights from file into the $weight hash
 	(0..param.length).each do |i|
 		$weight[param[i]] = weight[i] if param[i] != nil
 	end
 	
-	# output weights
+	# output weights to console for debugging
 	puts "parameter weights:\n"
 	$weight.each_key do |w|
 		puts w + ": " + $weight[w]
@@ -71,15 +111,33 @@ def main
 	
 	
 	# clear the system input buffer and prepare for input
+	STDIN.flush
 	STDOUT.flush
-	input = gets.chomp # chomp removes the trailing \n character
 	
 	# get input until exit command is received
 	begin
 		
+		# check for input
+		input = gets.chomp
+
+		
 		# interpret text commands
 		split = input.split
 		case split[0]
+		
+		# TODO
+		# "undo" commandeval 
+		
+		# manual of valid commands
+		when "help"
+			puts "[x] [y] [x/o]: log the current move"
+			puts "print: output the current board state"
+			puts "eval [x/o]: evaluate all possible moves for entered player"
+			puts "eval [x] [y] [x/o]: output the entered move value given loaded input weights"
+		
+		# exit the program
+		when "q"
+			return
 		
 		# output current board state
 		when "print"
@@ -111,10 +169,7 @@ def main
 			end
 			
 		end
-		
-		# keep checking for input
-		input = gets.chomp
-		
+				
 	end until input == "q"
 	
 end
