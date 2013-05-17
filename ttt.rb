@@ -43,6 +43,17 @@ class Move
 end
 
 
+class Individual
+	
+	attr_accessor :weight_of
+	
+	def initialize(weight_hash)
+		@weight_of = weight_hash
+	end
+	
+end
+
+
 #############################################################################
 #############################   METHODS   ###################################
 #############################################################################
@@ -50,23 +61,26 @@ end
 # main program method
 def main
 	
-	# initialize i/o class
-	reader = Ttt_Reader.new
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	# 1. load the parameters from the file
-	# 2. get an individual object from the reader
+	
+	# initialize i/o class
+	reader = Ttt_Reader.new("input.csv", "output.csv")
+	
+	
+	# 2. create an individual object from the input parameters
+	
+	
+	
 	# 3. load the weights from the individual object
-	# 4. repeat for the other player 2-3
-	# 5. have thenm play each other
+	#	-- done in initialize method of Individual class
+	
+	# 4. repeat for the other player
+	
+	# 5. have them play each other
+	#	-- combine input values linearly
+	#	-- try exponential in future versions
+	#	-- and logarithmic, if I can solve the constaints for alpha and beta
+	
 	# 6. save child to output.csv
 	
 	
@@ -77,39 +91,15 @@ def main
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	# load input parameter weights from existing input file
-	param, weight = Array.new
-	File.open("input.csv", "r") do |input|
-		param = input.gets.chomp.split(",")
-		weight = input.gets.chomp.split(",")
-	end
-	
-	# put input weights from file into the $weight hash
-	(0..param.length).each do |i|
-		$weight[param[i]] = weight[i] if param[i] != nil
-	end
+	$weight = reader.get_child
 	
 	# output weights to console for debugging
 	puts "parameter weights:\n"
 	$weight.each_key do |w|
-		puts w + ": " + $weight[w]
+		puts w + " => " + $weight[w]
 	end
 	
-	# create a new file for output
-	$output = File.open("output.csv", "w")
-	
-	
+			
 	# clear the system input buffer and prepare for input
 	STDIN.flush
 	STDOUT.flush
@@ -464,4 +454,6 @@ end
 #############################################################################
 
 # initialize main method
+
+puts ""
 main
