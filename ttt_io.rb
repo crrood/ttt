@@ -8,9 +8,12 @@ class Ttt_Reader
 	attr_accessor :params
 	
 	
+	# creates a new object
+	# sets input file
+	# gets parameters
 	def initialize(input_filename, output_filename)
 	
-		# debug messages
+		# DEBUG
 		# should eventually be turned into error checking
 		puts "ttt_Reader initialize started"
 		puts "input_filename: " + input_filename
@@ -23,6 +26,8 @@ class Ttt_Reader
 
 		# and grab the input parameters
 		@params = @in.gets.chomp.split(",")
+		
+		# DEBUG
 		puts "input parameters:\n" + @params.to_s
 		puts ""
 		
@@ -31,14 +36,23 @@ class Ttt_Reader
 		
 	end
 	
+	
+	# initialize input file
+	# .csv expected
 	def in
 		@in
 	end
 	
+	
+	# initialize output file
 	def out
 		@out
 	end
 	
+	
+	# returns Hash where 
+	# key = parameter
+	# value = its weight
 	def get_child
 	
 		weights = @in.gets.chomp.split(",")
@@ -47,6 +61,8 @@ class Ttt_Reader
 		params.each do |param|
 			child[param.to_s] = weights[params.index(param)]
 		end
+		
+		# DEBUG
 		puts "child" + child.to_s
 		
 		return child

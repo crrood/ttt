@@ -45,10 +45,35 @@ end
 
 class Individual
 	
+	# hash where
+	# key = parameter
+	# value = its weight
 	attr_accessor :weight_of
 	
-	def initialize(weight_hash)
-		@weight_of = weight_hash
+	
+	# initialize weight_of hash from given input
+	def set_weights(input)
+		
+		# premade Hash
+		if (input.is_a?(Hash))
+		
+			@weight_of = weight_hash
+		
+		# i/o reader object
+		elsif (input.is_a?(Ttt_Reader))
+			
+			@weight_of = input.get_child
+		
+		end
+		
+	end
+	
+	
+	# output formatting
+	def to_s
+		
+		print @weight_of
+		
 	end
 	
 end
@@ -61,43 +86,30 @@ end
 # main program method
 def main
 	
-	# 1. load the parameters from the file
+	# load the parameters from the file
 	
 	# initialize i/o class
 	reader = Ttt_Reader.new("input.csv", "output.csv")
 	
 	
-	# 2. create an individual object from the input parameters
+	# create an individual object from the input parameters
+	player1 = Individual.new.set_weights(reader)
+	player2 = Individual.new.set_weights(reader)
 	
 	
-	
-	# 3. load the weights from the individual object
-	#	-- done in initialize method of Individual class
-	
-	# 4. repeat for the other player
-	
-	# 5. have them play each other
+	# have them play each other
 	#	-- combine input values linearly
 	#	-- try exponential in future versions
-	#	-- and logarithmic, if I can solve the constaints for alpha and beta
-	
-	# 6. save child to output.csv
+	#	-- and logarithmic, if I can solve the mathematical issues
 	
 	
+	# DEBUG
+	puts mate(player1, player2, "exp")
 	
 	
+	# save results to output.csv
+	#	-- what info do I want?
 	
-	
-	
-	
-	
-	$weight = reader.get_child
-	
-	# output weights to console for debugging
-	puts "parameter weights:\n"
-	$weight.each_key do |w|
-		puts w + " => " + $weight[w]
-	end
 	
 			
 	# clear the system input buffer and prepare for input
@@ -116,7 +128,7 @@ def main
 		case split[0]
 		
 		# TODO
-		# "undo" commandeval 
+		# "undo" command
 		
 		# manual of valid commands
 		when "help"
@@ -163,6 +175,7 @@ def main
 	end until input == "q"
 	
 end
+
 
 # output board state to console
 def print_state
@@ -284,6 +297,7 @@ def set_state(move)
 	
 end
 
+
 # determine best move
 # param: whose turn it is
 def find_optimal_move_for(active)
@@ -324,6 +338,7 @@ def find_optimal_move_for(active)
 	best_move
 	
 end
+
 
 # quantify the value of a specific move
 # param: qualified Move object
@@ -445,6 +460,57 @@ def evaluate(move)
 	puts "move_value for " + move.to_s + ": " + move_value.to_s
 	
 	move_value
+	
+end
+
+
+# have two Individuals play each other
+# and return a child Individual based on the outcome
+def compete(parent1, parent2)
+
+end
+
+
+# create a child given a winner and a loser Individual objects
+def mate(winner, loser, method)
+	
+	# create new Individual object to store child
+	child = Individual.new
+	
+	# DEBUG
+	alpha = 0.7
+	beta = 0.3
+	gamma = 0.04
+	
+	# combine parent values
+	case method.to_s
+	
+	# combine linearly
+	when "lin"
+		
+		child.weight_of = winner.merge(loser) { |param, winner_weight, loser_weight| 
+			(alpha * winner_weight.to_f + beta * loser_weight.to_f) * gen_error(gamma)
+		}
+		
+	# combine exponentially
+	when "exp"
+		
+		child.weight_of = winner.merge(loser) { |param, winner_weight, loser_weight|
+			(winner_weight.to_f**alpha) * (loser_weight.to_f**beta) * gen_error(gamma)
+		}
+		
+	end
+	
+	
+	return child
+	
+end
+
+
+# generate error modifier between 1 +/- gamma percent
+def gen_error(gamma)
+	
+	(1 - gamma + 2 * rand * gamma)
 	
 end
 
