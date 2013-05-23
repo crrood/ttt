@@ -15,9 +15,6 @@ WIDTH = 2
 # initialize board state array
 $board = [ [ "E" , "E" , "E" ] , [ "E" , "E" , "E" ] , [ "E" , "E" , "E" ] ]
 
-# weights of move evaluation paramaters
-$weight = Hash.new
-
 
 #############################################################################
 #############################   CLASSES   ###################################
@@ -98,13 +95,11 @@ def main
 	
 	
 	# have them play each other
-	#	-- combine input values linearly
-	#	-- try exponential in future versions
-	#	-- and logarithmic, if I can solve the mathematical issues
+	winner = winner_of(player1, player2)
 	
 	
 	# DEBUG
-	puts mate(player1, player2, "exp")
+	puts mate(winner, winner == player1 ? player1 : player2, "exp")
 	
 	
 	# save results to output.csv
@@ -300,7 +295,7 @@ end
 
 # determine best move
 # param: whose turn it is
-def find_optimal_move_for(active)
+def find_optimal_move_for(individual, active_side)
 	
 	# iterate over all spaces
 	# evaluate each
@@ -317,9 +312,10 @@ def find_optimal_move_for(active)
 			
 			# check if the move is valid
 			if ($board[x][y] == "E")
+			
 				# evaluate move
-				move_object = Move.new(x, y, active)
-				move_value = evaluate(move_object)
+				move_object = Move.new(x, y, active_side)
+				move_value = evaluate(move_object, individual)
 				
 				# compare against current max
 				if (move_value > max_value)
@@ -333,8 +329,10 @@ def find_optimal_move_for(active)
 		
 	end
 	
-	# return the highest rated move
+	# DEBUG
 	puts best_move
+	
+	# return the highest rated move
 	best_move
 	
 end
@@ -342,7 +340,7 @@ end
 
 # quantify the value of a specific move
 # param: qualified Move object
-def evaluate(move)
+def evaluate(move, individual)
 	
 	# CRITERIA FOR MOVE M:
 	# does M win?
@@ -375,9 +373,18 @@ def evaluate(move)
 	# then taking move as true
 	(0..1).each do |m|
 	
+		# the evaluation algorithm iterates through each
+		# line (vertical, horizontal, and diagonal),
+		# counting the number of each players' square in each
+		
+		# move_wins = 1 if all 3 squares are theirs
+		# turns_to_win = 3 - # theirs if no opposing pieces present
+		# possible_wins = sum of all lines where no opposing pieces present
+		
 		# iterates through board twice
 		# reflecting from horizontal to vertical at y = 3
 		# by reversing x and y coordinates
+		
 		(0..5).each do |y|
 			(0..2).each do |x|
 				# count spaces
@@ -453,7 +460,7 @@ def evaluate(move)
 	
 	# multiply parameter values by their weights
 	params.each_key do |p|
-		move_value += params[p].to_i * $weight[p].to_i
+		move_value += params[p].to_i * individual.weight_of[p].to_i
 	end
 	
 	# DEBUG
@@ -466,8 +473,13 @@ end
 
 # have two Individuals play each other
 # and return a child Individual based on the outcome
-def compete(parent1, parent2)
-
+def winner_of(parent1, parent2)
+	
+	# parent1 always goes first, is X
+	# parent2 always goes second, is O
+	set_state(find_optimal_move_for(player1, "X"))
+	
+	
 end
 
 
